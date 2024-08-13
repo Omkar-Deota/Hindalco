@@ -17,10 +17,10 @@ app.use(cors({
 // Create a MySQL connection pool
 const pool = mysql.createPool({
   connectionLimit: 10,
-  host: '127.0.0.1',
-  user: 'root',
-  password: 'Omkar@deota2003!!',
-  database: 'samplecheck',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 const checkDatabaseConnection = (callback) => {
