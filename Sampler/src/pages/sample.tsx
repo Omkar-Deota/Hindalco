@@ -53,7 +53,7 @@ const DataTable = () => {
   const fetchData = async () => {
     try {
       const response = await axios.get(
-        "http://127.0.0.1:3000/weighbridge-data",
+        "https://hindalco.onrender.com/weighbridge-data",
       );
       const dataWithId = response.data.map(
         (row: { id: any }, index: number) => ({
