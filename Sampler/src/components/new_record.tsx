@@ -35,7 +35,7 @@ export default function SamplingScreen({ onSuccess, onClose }: any) {
         const { truck_type, ...datatosend } = values;
 
         await axios.post(
-          "http://127.0.0.1:3000/weighbridge-submit",
+          "https://hindalco.onrender.com/weighbridge-submit",
           datatosend,
         );
 
