@@ -56,10 +56,14 @@ const DataTable = () => {
         "http://127.0.0.1:3000/weighbridge-data",
       );
       const dataWithId = response.data.map(
-        (row: { id: any }, index: number) => ({
-          id: row.id || index + 1,
-          ...row,
-        }),
+        (row: { id?: any }, index: number) => {
+          const { id, ...rest } = row; // Destructure id and rest of the properties
+
+          return {
+            id: id || index + 1,
+            ...rest,
+          };
+        },
       );
 
       // Sort data by id in descending order (most recent first)
