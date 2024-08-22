@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { DataGrid } from "@mui/x-data-grid";
-import { Container, Button, Modal, Box, Typography } from "@mui/material";
+import { Container, Button, Typography, Box, Modal } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 import DefaultLayout from "@/layouts/default";
+import EntryDetailsModal from "@/components/entrydetails";
 import SamplingScreen from "@/components/new_record";
+
+interface EntryDetails {
+  entry_id: string;
+  vehicle_no: string;
+  challan_quantity_MT: number;
+}
 
 const DataTable = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  const [selectedData, setSelectedData] = useState<EntryDetails | null>(null);
 
-  // Define the columns for the DataGrid
+  const navigate = useNavigate();
+
   const columns = [
-    { field: "id", headerName: "ID", width: 90 },
+    { field: "entry_id", headerName: "Entry Id", width: 120 },
     { field: "vehicle_no", headerName: "Vehicle No", flex: 1, minWidth: 150 },
     {
       field: "challan_quantity_MT",
@@ -37,11 +47,11 @@ const DataTable = () => {
       field: "action",
       headerName: "Action",
       width: 150,
-      renderCell: () => (
+      renderCell: (params: any) => (
         <Button
           color="primary"
           variant="contained"
-          onClick={() => handleCheck()}
+          onClick={(e) => handleButtonClick(e, params.row.entry_id)}
         >
           Check
         </Button>
@@ -49,32 +59,32 @@ const DataTable = () => {
     },
   ];
 
-  // Fetch data from the API
+  const handleButtonClick = (e: React.MouseEvent, entryId: string) => {
+    e.stopPropagation();
+    navigate(`/predict/${entryId}`);
+  };
+
+  const handleRowClick = (params: any) => {
+    setSelectedData(params.row);
+    setOpenModal(true);
+  };
+
   const fetchData = async () => {
     try {
       const response = await axios.get(
-        "https://hindalco.onrender.com/weighbridge-data",
+        "http://localhost:3000/weighbridge-data"
       );
       const dataWithId = response.data.map(
-        (row: { id?: any }, index: number) => {
-          const { id, ...rest } = row; // Destructure id and rest of the properties
-
-          return {
-            id: id || index + 1,
-            ...rest,
-          };
-        },
+        (row: { id?: any }, index: number) => ({
+          id: row.id || index + 1,
+          ...row,
+        })
       );
-
-      // Sort data by id in descending order (most recent first)
-      const sortedData = dataWithId.sort(
-        (a: { id: number }, b: { id: number }) => b.id - a.id,
-      );
+      const sortedData = dataWithId.sort((a: { id: number }, b: { id: number }) => b.id - a.id);
 
       setRows(sortedData);
       setLoading(false);
     } catch (error) {
-      // console.error("Error fetching data:", error);
       setLoading(false);
     }
   };
@@ -83,23 +93,15 @@ const DataTable = () => {
     fetchData();
   }, []);
 
-  const handleCheck = () => {
-    alert("Checked row:");
-    // Handle your check logic here
-  };
-
-  const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => setOpenModal(false);
-
-  const handleSuccess = () => {
-    handleCloseModal();
-    fetchData();
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedData(null);
   };
 
   return (
     <DefaultLayout>
       <Container maxWidth="xl">
-        <div className="flex ">
+        <div className="flex">
           <Typography color="green" variant="h3">
             Truck Data
           </Typography>
@@ -107,24 +109,36 @@ const DataTable = () => {
             color="primary"
             style={{ marginBottom: "16px", marginLeft: "auto" }}
             variant="contained"
-            onClick={handleOpenModal}
+            onClick={() => setOpenModal(true)}
           >
             Add New Entry
           </Button>
         </div>
         <div style={{ height: "80vh", width: "100%" }}>
-          <DataGrid columns={columns} loading={loading} rows={rows} />
+          <DataGrid
+            columns={columns}
+            loading={loading}
+            rows={rows}
+            onRowClick={handleRowClick}
+          />
         </div>
       </Container>
 
+      {selectedData && (
+        <EntryDetailsModal
+          open={openModal}
+          selectedData={selectedData}
+          onClose={handleCloseModal}
+        />
+      )}
       <Modal
         BackdropProps={{
-          style: { backgroundColor: "rgba(0, 0, 0, 0.5)" }, // Customize backdrop color (optional)
+          style: { backgroundColor: "rgba(0, 0, 0, 0.5)" },
         }}
         open={openModal}
         sx={{
           "& .MuiBackdrop-root": {
-            backgroundColor: "rgba(255, 255, 255, 0.8)", // Ensures the backdrop doesn’t override the theme
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
           },
         }}
         onClose={handleCloseModal}
@@ -144,7 +158,10 @@ const DataTable = () => {
         >
           <SamplingScreen
             onClose={handleCloseModal}
-            onSuccess={handleSuccess}
+            onSuccess={() => {
+              fetchData(); // Refresh the data
+              handleCloseModal(); // Close the modal
+            }}
           />
         </Box>
       </Modal>

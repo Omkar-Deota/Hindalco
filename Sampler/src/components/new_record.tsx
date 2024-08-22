@@ -13,9 +13,10 @@ import * as Yup from "yup";
 
 // Validation schema using Yup
 const validationSchema = Yup.object().shape({
+  entry_id: Yup.number().required("ID must be given"),
   vehicle_no: Yup.string().required("Vehicle number is required"),
-  challan_quantity: Yup.number().required("Must provide challan quantity"),
-  gross_weight: Yup.number().required("Must provide gross weight"),
+  challan_quantity: Yup.number().required("Challan quantity can't be empty"),
+  gross_weight: Yup.number().required("Gross weight can't be empty"),
   truck_type: Yup.string().required("Truck type is required"),
   expectedWeight: Yup.number(),
 });
@@ -23,6 +24,7 @@ const validationSchema = Yup.object().shape({
 export default function SamplingScreen({ onSuccess, onClose }: any) {
   const formik = useFormik({
     initialValues: {
+      entry_id: "",
       vehicle_no: "",
       challan_quantity: "",
       gross_weight: "",
@@ -35,14 +37,11 @@ export default function SamplingScreen({ onSuccess, onClose }: any) {
         const { truck_type, ...datatosend } = values;
 
         await axios.post(
-          "https://hindalco.onrender.com/weighbridge-submit",
+          "http://localhost:3000/weighbridge-submit",
           datatosend,
         );
-
-        // console.log("Success:", response.data);
-        onSuccess(); // Close modal and refresh data
+        onSuccess();
       } catch (error) {
-        // console.error("Error:", error.response?.data || error.message);
       } finally {
         setSubmitting(false);
       }
@@ -82,6 +81,18 @@ export default function SamplingScreen({ onSuccess, onClose }: any) {
         Sample Details
       </Typography>
       <form onSubmit={formik.handleSubmit}>
+      <TextField
+          fullWidth
+          error={formik.touched.entry_id && Boolean(formik.errors.entry_id)}
+          helperText={formik.touched.entry_id && formik.errors.entry_id}
+          label="Entry ID"
+          name="entry_id"
+          sx={{ padding: "6px" }}
+          type="number"
+          value={formik.values.entry_id}
+          onBlur={formik.handleBlur}
+          onChange={formik.handleChange}
+        />
         <TextField
           fullWidth
           error={formik.touched.vehicle_no && Boolean(formik.errors.vehicle_no)}
