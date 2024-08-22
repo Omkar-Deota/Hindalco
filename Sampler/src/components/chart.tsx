@@ -1,4 +1,4 @@
-import { Bar, Line } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,7 +20,7 @@ ChartJS.register(
   Legend,
 );
 
-const Charts = ({ data }: any) => {
+const Charts = ({ data, realData }: { data: any; realData: any }) => {
   const gcvValues = data.map((item: { gcv: string }) => parseFloat(item.gcv));
   const moistureValues = data.map((item: { moisture: string }) =>
     parseFloat(item.moisture),
@@ -28,8 +28,13 @@ const Charts = ({ data }: any) => {
   const delayValues = data.map((item: { delay_minutes: string }) =>
     parseInt(item.delay_minutes, 10),
   );
+  const realGcv = realData.map((item: { gcv_range: string }) =>
+    parseFloat(item.gcv_range),
+  );
+
 
   const labels = data.map((item: { vehicle_no: string }) => item.vehicle_no);
+
   const gcvData = {
     labels,
     datasets: [
@@ -38,6 +43,13 @@ const Charts = ({ data }: any) => {
         data: gcvValues,
         borderColor: "rgba(75, 192, 192, 1)",
         backgroundColor: "rgba(75, 192, 192, 0.2)",
+        fill: true,
+      },
+      {
+        label: "GCV Range",
+        data: realGcv,
+        borderColor: "rgba(255, 99, 132, 1)",
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
         fill: true,
       },
     ],

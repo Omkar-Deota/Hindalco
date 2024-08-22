@@ -93,7 +93,6 @@ app.get('/delay-data/:id', (req, res) => {
 });
 
 //Visualize dashboard
-
 app.get('/dashboard/:id', (req, res) => {
   const { id } = req.params;
   const query = `
@@ -111,6 +110,24 @@ app.get('/dashboard/:id', (req, res) => {
     res.status(200).json(results);
   });
 });
+
+//compare gcv get real-gcv
+app.get('/real-gcv/:id', (req, res) => {
+  const { id } = req.params;
+  const query = `
+  SELECT td.vehicle_no, td.s_id, sm.gcv_range FROM transition_delay td JOIN source_master sm ON td.s_id = sm.s_id
+  WHERE td.s_id IN (SELECT DISTINCT(s_id) FROM transition_delay WHERE t_id = (SELECT t_id FROM transition_delay WHERE entry_id = ?)) 
+  AND td.t_id = (SELECT t_id FROM transition_delay WHERE entry_id = ?)
+  `;
+
+  pool.query(query, [id, id], (error, results) => {
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.status(200).json(results);
+  });
+})
 
 //weight-diff
 app.get('/weight-diff/:id', (req, res) => {
@@ -135,11 +152,11 @@ app.post('/predict-quality', async (req, res) => {
   const inputData = req.body;
 
   try {
-      const response = await axios.post('http://localhost:5000/predict', inputData);
-      return res.json({ predictions: response.data });
+    const response = await axios.post('http://localhost:5000/predict', inputData);
+    return res.json({ predictions: response.data });
   } catch (error) {
-      console.error('Error predicting quality:', error);
-      return res.status(500).json({ error: 'Error predicting quality' });
+    console.error('Error predicting quality:', error);
+    return res.status(500).json({ error: 'Error predicting quality' });
   }
 });
 
