@@ -17,7 +17,8 @@ interface EntryDetails {
 const DataTable = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false);
+  const [openEntryModal, setOpenEntryModal] = useState(false);
+  const [openSamplingModal, setOpenSamplingModal] = useState(false);
   const [selectedData, setSelectedData] = useState<EntryDetails | null>(null);
 
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ const DataTable = () => {
 
   const handleRowClick = (params: any) => {
     setSelectedData(params.row);
-    setOpenModal(true);
+    setOpenEntryModal(true);
   };
 
   const fetchData = async () => {
@@ -80,7 +81,9 @@ const DataTable = () => {
           ...row,
         })
       );
-      const sortedData = dataWithId.sort((a: { id: number }, b: { id: number }) => b.id - a.id);
+      const sortedData = dataWithId.sort(
+        (a: { id: number }, b: { id: number }) => b.id - a.id
+      );
 
       setRows(sortedData);
       setLoading(false);
@@ -93,9 +96,17 @@ const DataTable = () => {
     fetchData();
   }, []);
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
+  const handleCloseEntryModal = () => {
+    setOpenEntryModal(false);
     setSelectedData(null);
+  };
+
+  const handleOpenSamplingModal = () => {
+    setOpenSamplingModal(true);
+  };
+
+  const handleCloseSamplingModal = () => {
+    setOpenSamplingModal(false);
   };
 
   return (
@@ -109,7 +120,7 @@ const DataTable = () => {
             color="primary"
             style={{ marginBottom: "16px", marginLeft: "auto" }}
             variant="contained"
-            onClick={() => setOpenModal(true)}
+            onClick={handleOpenSamplingModal}
           >
             Add New Entry
           </Button>
@@ -126,22 +137,23 @@ const DataTable = () => {
 
       {selectedData && (
         <EntryDetailsModal
-          open={openModal}
+          open={openEntryModal}
           selectedData={selectedData}
-          onClose={handleCloseModal}
+          onClose={handleCloseEntryModal}
         />
       )}
+
       <Modal
         BackdropProps={{
           style: { backgroundColor: "rgba(0, 0, 0, 0.5)" },
         }}
-        open={openModal}
+        open={openSamplingModal}
         sx={{
           "& .MuiBackdrop-root": {
             backgroundColor: "rgba(255, 255, 255, 0.8)",
           },
         }}
-        onClose={handleCloseModal}
+        onClose={handleCloseSamplingModal}
       >
         <Box
           sx={{
@@ -157,10 +169,10 @@ const DataTable = () => {
           }}
         >
           <SamplingScreen
-            onClose={handleCloseModal}
+            onClose={handleCloseSamplingModal}
             onSuccess={() => {
               fetchData(); // Refresh the data
-              handleCloseModal(); // Close the modal
+              handleCloseSamplingModal(); // Close the modal
             }}
           />
         </Box>
