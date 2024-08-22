@@ -1,11 +1,12 @@
 const express = require('express');
+const { PythonShell } = require('python-shell');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const cors = require('cors');
 const app = express();
 const port = 3000;
-
+const axios = require('axios')
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -58,7 +59,6 @@ app.post('/weighbridge-submit', (req, res) => {
 });
 
 //retrive weighbridge data
-// Route to retrieve weighbridge data
 app.get('/weighbridge-data', (req, res) => {
   pool.query('SELECT * FROM weighbridge', (error, results) => {
     if (error) {
@@ -116,7 +116,7 @@ app.get('/dashboard/:id', (req, res) => {
 app.get('/weight-diff/:id', (req, res) => {
   const { id } = req.params;
   const query = `
-  select (wb.expected_weight_MT-wb.challan_quantity_MT),wb.vehicle_no from weighbridge as wb inner join gate_entry as ge on wb.entry_id=ge.entry_id 
+  select (wb.expected_weight_MT-wb.challan_quantity_MT),wb.vehicle_no, wb.entry_id from weighbridge as wb inner join gate_entry as ge on wb.entry_id=ge.entry_id 
   where wb.entry_id in
    (SELECT entry_id from gate_entry where t_id=(select t_id from gate_entry where entry_id=?)) 
   `;
@@ -129,6 +129,20 @@ app.get('/weight-diff/:id', (req, res) => {
     res.status(200).json(results);
   });
 });
+
+//prediction route
+app.post('/predict-quality', async (req, res) => {
+  const inputData = req.body;
+
+  try {
+      const response = await axios.post('http://localhost:5000/predict', inputData);
+      return res.json({ predictions: response.data });
+  } catch (error) {
+      console.error('Error predicting quality:', error);
+      return res.status(500).json({ error: 'Error predicting quality' });
+  }
+});
+
 checkDatabaseConnection((isConnected) => {
   if (isConnected) {
     app.listen(port, () => {
