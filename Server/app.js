@@ -152,7 +152,7 @@ app.post('/predict-quality', async (req, res) => {
   const inputData = req.body;
 
   try {
-    const response = await axios.post('http://localhost:5000/predict', inputData);
+    const response = await axios.post('http://localhost:5000/predict-quality', inputData);
     return res.json({ predictions: response.data });
   } catch (error) {
     console.error('Error predicting quality:', error);
