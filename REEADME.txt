@@ -1,0 +1,1 @@
+Run te python model in jupyter then run ere everything 
