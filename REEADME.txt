@@ -1,1 +1,1 @@
-Run te python model in jupyter then run ere everything 
+Run the python model in jupyter then run ere everything 
